@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AsyncLocalizationPipe,
   ConfigStateService,
@@ -172,7 +173,11 @@ export class LoginComponent implements OnDestroy {
         if (tenantName) {
           this.toaster.info(this.localization.instant('::Login.TenantConnected', tenantName));
         }
-        return this.authentication.login(value);
+        return this.authentication.login({
+          username: value.username.trim(),
+          password: value.password,
+          rememberMe: value.rememberMe,
+        });
       }),
       finalize(() => this.submitting.set(false)),
     ).subscribe({
@@ -180,7 +185,7 @@ export class LoginComponent implements OnDestroy {
         this.toaster.success(this.localization.instant('::Login.Success'));
         this.authenticated.emit();
       },
-      error: () => this.toaster.error(this.localization.instant('::Login.Error')),
+      error: error => this.toaster.error(this.resolveLoginError(error)),
     });
   }
 
@@ -196,5 +201,23 @@ export class LoginComponent implements OnDestroy {
   hasError(control: 'companyCode' | 'username' | 'password') {
     const field = this.form.controls[control];
     return field.invalid && (field.touched || field.dirty);
+  }
+
+  private resolveLoginError(error: unknown) {
+    const fallback = this.localization.instant('::Login.Error');
+    const httpError = error instanceof HttpErrorResponse
+      ? error
+      : (error as { reason?: unknown } | null)?.reason;
+
+    if (!(httpError instanceof HttpErrorResponse)) return fallback;
+
+    const payload = httpError.error as {
+      error_description?: unknown;
+      error?: { message?: unknown } | string;
+    } | null;
+    const message = payload?.error_description
+      ?? (typeof payload?.error === 'object' ? payload.error?.message : undefined);
+
+    return typeof message === 'string' && message.trim() ? message : fallback;
   }
 }
