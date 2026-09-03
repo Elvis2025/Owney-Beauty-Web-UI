@@ -1,12 +1,23 @@
-import { ChangeDetectionStrategy, Component, effect, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  HostListener,
+  inject,
+  OnDestroy,
+  output,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
+  AsyncLocalizationPipe,
   ConfigStateService,
   LanguageInfo,
-  LocalizationPipe,
   LocalizationService,
   SessionStateService,
 } from '@abp/ng.core';
+import { AsyncPipe } from '@angular/common';
 import { Confirmation, ConfirmationService, ToasterService } from '@abp/ng.theme.shared';
 import { finalize, switchMap } from 'rxjs';
 import { AuthenticationService } from '../../proxy/authentication';
@@ -16,12 +27,12 @@ type Theme = 'light' | 'dark';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, LocalizationPipe],
+  imports: [ReactiveFormsModule, AsyncLocalizationPipe, AsyncPipe],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   readonly authenticated = output<void>();
   private readonly fb = inject(FormBuilder);
   private readonly authentication = inject(AuthenticationService);
@@ -36,8 +47,22 @@ export class LoginComponent {
   readonly currentLanguage = signal(this.session.getLanguage());
   readonly theme = signal<Theme>((localStorage.getItem('owney-theme') as Theme) || 'light');
   readonly passwordVisible = signal(false);
+  readonly languageMenuOpen = signal(false);
+  readonly languageQuery = signal('');
+  readonly filteredLanguages = computed(() => {
+    const query = this.normalizeLanguageText(this.languageQuery());
+    if (!query) return this.languages;
+
+    return this.languages.filter(language =>
+      [language.displayName, language.cultureName, language.twoLetterISOLanguageName]
+        .some(value => this.normalizeLanguageText(value).includes(query)),
+    );
+  });
   readonly submitting = signal(false);
   readonly tenantName = signal<string | null>(null);
+
+  private languageOpenTimer?: ReturnType<typeof setTimeout>;
+  private languageCloseTimer?: ReturnType<typeof setTimeout>;
 
   readonly form = this.fb.nonNullable.group({
     companyCode: ['', [Validators.maxLength(64)]],
@@ -55,9 +80,79 @@ export class LoginComponent {
   }
 
   setLanguage(language: string) {
+    if (!language) return;
+
     this.currentLanguage.set(language);
     this.session.setLanguage(language);
     document.documentElement.lang = language;
+    this.closeLanguageMenu();
+  }
+
+  selectedLanguage() {
+    return this.languages.find(language => language.cultureName === this.currentLanguage());
+  }
+
+  languageLabel(language?: LanguageInfo) {
+    return (language?.twoLetterISOLanguageName || language?.cultureName || this.currentLanguage().slice(0, 2)).toUpperCase();
+  }
+
+  scheduleLanguageMenuOpen() {
+    this.clearLanguageTimers();
+    this.languageOpenTimer = setTimeout(() => this.languageMenuOpen.set(true), 1000);
+  }
+
+  scheduleLanguageMenuClose() {
+    clearTimeout(this.languageOpenTimer);
+    this.languageCloseTimer = setTimeout(() => this.closeLanguageMenu(), 180);
+  }
+
+  toggleLanguageMenu(event: Event) {
+    event.stopPropagation();
+    this.clearLanguageTimers();
+    if (this.languageMenuOpen()) {
+      this.closeLanguageMenu();
+      return;
+    }
+
+    this.languageMenuOpen.set(true);
+  }
+
+  updateLanguageQuery(event: Event) {
+    this.languageQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  clearLanguageQuery(event: Event) {
+    event.stopPropagation();
+    this.languageQuery.set('');
+  }
+
+  selectLanguage(language: string, event: Event) {
+    event.stopPropagation();
+    this.setLanguage(language);
+  }
+
+  @HostListener('document:pointerdown')
+  closeLanguageMenu() {
+    this.clearLanguageTimers();
+    this.languageMenuOpen.set(false);
+    this.languageQuery.set('');
+  }
+
+  ngOnDestroy() {
+    this.clearLanguageTimers();
+  }
+
+  private clearLanguageTimers() {
+    clearTimeout(this.languageOpenTimer);
+    clearTimeout(this.languageCloseTimer);
+  }
+
+  private normalizeLanguageText(value?: string) {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLocaleLowerCase();
   }
 
   toggleTheme() { this.theme.update(theme => theme === 'light' ? 'dark' : 'light'); }

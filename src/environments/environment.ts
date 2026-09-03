@@ -6,7 +6,8 @@ const oAuthConfig = {
   issuer: 'https://localhost:44389/',
   redirectUri: baseUrl,
   clientId: 'OwneyBeauty_App',
-  responseType: 'code',
+  responseType: 'password',
+  oidc: false,
   scope: 'offline_access OwneyBeauty',
   requireHttps: true,
 };

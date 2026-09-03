@@ -1,66 +1,133 @@
 <main class="login-shell">
   <section class="brand-panel" aria-label="Owney Beauty">
     <div class="brand-panel__glow"></div>
+    <div class="brand-ambience" aria-hidden="true">
+      <span class="ambient-blob ambient-blob--one"></span>
+      <span class="ambient-blob ambient-blob--two"></span>
+      <span class="light-streak light-streak--one"></span>
+      <span class="light-streak light-streak--two"></span>
+      <i class="bi bi-stars floating-mote floating-mote--one"></i>
+      <i class="bi bi-circle-fill floating-mote floating-mote--two"></i>
+      <i class="bi bi-star floating-mote floating-mote--three"></i>
+    </div>
     <div class="brand-lockup"><strong>OWNEY</strong><span>BEAUTY</span></div>
     <div class="brand-message">
-      <span class="brand-message__eyebrow">{{ '::Login.Eyebrow' | abpLocalization }}</span>
-      <h1>{{ '::Login.BrandTitle' | abpLocalization }}<br><em>{{ '::Login.BrandEmphasis' | abpLocalization }}</em></h1>
-      <p>{{ '::Login.Subtitle' | abpLocalization }}</p>
+      <span class="brand-message__eyebrow">{{ '::Login.Eyebrow' | abpAsyncLocalization | async }}</span>
+      <h1>{{ '::Login.BrandTitle' | abpAsyncLocalization | async }}<br><em>{{ '::Login.BrandEmphasis' | abpAsyncLocalization | async }}</em></h1>
+      <p>{{ '::Login.Subtitle' | abpAsyncLocalization | async }}</p>
     </div>
-    <div class="brand-proof"><span>✦</span><p><strong>500+</strong><small>{{ '::Login.ProfessionalProof' | abpLocalization }}</small></p></div>
+    <div class="brand-proof"><span><i class="bi bi-stars" aria-hidden="true"></i></span><p><strong>500+</strong><small>{{ '::Login.ProfessionalProof' | abpAsyncLocalization | async }}</small></p></div>
     <div class="beauty-orbit beauty-orbit--one"></div><div class="beauty-orbit beauty-orbit--two"></div>
   </section>
 
   <section class="form-panel">
     <header class="login-toolbar">
-      <div class="language-switch" [attr.aria-label]="'::Login.Language' | abpLocalization">
-        @for (language of languages; track language.cultureName) {
-          <button type="button" [class.active]="currentLanguage() === language.cultureName" (click)="setLanguage(language.cultureName || '')" [attr.title]="language.displayName">
-            {{ language.twoLetterISOLanguageName || language.cultureName }}
-          </button>
+      <div
+        class="language-picker"
+        [class.open]="languageMenuOpen()"
+        (mouseenter)="scheduleLanguageMenuOpen()"
+        (mouseleave)="scheduleLanguageMenuClose()"
+        (pointerdown)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="language-trigger"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="languageMenuOpen()"
+          [attr.aria-label]="'::Login.Language' | abpAsyncLocalization | async"
+          (click)="toggleLanguageMenu($event)"
+        >
+          <i class="bi bi-globe2 language-trigger__globe" aria-hidden="true"></i>
+          <span>{{ languageLabel(selectedLanguage()) }}</span>
+          <i class="bi bi-chevron-down language-trigger__chevron" aria-hidden="true"></i>
+        </button>
+
+        @if (languageMenuOpen()) {
+          <div class="language-menu" (keydown.escape)="closeLanguageMenu()">
+            <label class="language-search">
+              <i class="bi bi-search" aria-hidden="true"></i>
+              <input
+                type="search"
+                [value]="languageQuery()"
+                (input)="updateLanguageQuery($event)"
+                [placeholder]="'AbpUi::Search' | abpAsyncLocalization | async"
+                [attr.aria-label]="'AbpUi::Search' | abpAsyncLocalization | async"
+                autocomplete="off"
+              >
+              @if (languageQuery()) {
+                <button type="button" (click)="clearLanguageQuery($event)" [attr.aria-label]="'AbpUi::Clear' | abpAsyncLocalization | async">
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              }
+            </label>
+
+            <div class="language-options" role="listbox" [attr.aria-label]="'::Login.Language' | abpAsyncLocalization | async">
+            @for (language of filteredLanguages(); track language.cultureName) {
+              <button
+                type="button"
+                class="language-option"
+                role="option"
+                [class.active]="currentLanguage() === language.cultureName"
+                [attr.aria-selected]="currentLanguage() === language.cultureName"
+                (click)="selectLanguage(language.cultureName || '', $event)"
+              >
+                <span class="language-option__code">{{ languageLabel(language) }}</span>
+                <span class="language-option__name">{{ language.displayName || language.cultureName }}</span>
+                @if (currentLanguage() === language.cultureName) {
+                  <i class="bi bi-check2 language-option__check" aria-hidden="true"></i>
+                }
+              </button>
+            } @empty {
+              <div class="language-empty">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <span>{{ 'AbpUi::NoDataAvailableInDatatable' | abpAsyncLocalization | async }}</span>
+              </div>
+            }
+            </div>
+          </div>
         }
       </div>
-      <button type="button" class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="(theme() === 'light' ? '::Login.EnableDarkMode' : '::Login.EnableLightMode') | abpLocalization">
-        <span [class.active]="theme() === 'light'">☼</span><span [class.active]="theme() === 'dark'">●</span>
+      <button type="button" class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="(theme() === 'light' ? '::Login.EnableDarkMode' : '::Login.EnableLightMode') | abpAsyncLocalization | async">
+        <i class="bi bi-sun" [class.active]="theme() === 'light'" aria-hidden="true"></i><i class="bi bi-moon-stars" [class.active]="theme() === 'dark'" aria-hidden="true"></i>
       </button>
     </header>
 
     <div class="form-wrap">
       <div class="mobile-brand"><strong>OWNEY</strong><span>BEAUTY</span></div>
-      <span class="form-eyebrow">{{ '::Login.Eyebrow' | abpLocalization }}</span>
-      <h2>{{ '::Login.Title' | abpLocalization }}</h2>
-      <p class="form-intro">{{ '::Login.Subtitle' | abpLocalization }}</p>
+      <span class="form-eyebrow">{{ '::Login.Eyebrow' | abpAsyncLocalization | async }}</span>
+      <h2>{{ '::Login.Title' | abpAsyncLocalization | async }}</h2>
+      <p class="form-intro">{{ '::Login.Subtitle' | abpAsyncLocalization | async }}</p>
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="company-card" [class.invalid]="hasError('companyCode')">
-          <div class="company-card__icon" aria-hidden="true">◇</div>
-          <label for="companyCode"><strong>{{ '::Login.CompanyCode' | abpLocalization }}</strong><small>{{ '::Login.CompanyCodeHint' | abpLocalization }}</small></label>
-          <input id="companyCode" type="text" formControlName="companyCode" autocomplete="organization" [placeholder]="'::Login.CompanyCodePlaceholder' | abpLocalization">
-          @if (form.controls.companyCode.value) { <span class="company-card__status" [title]="'::Login.CompanyCodeSpecified' | abpLocalization">●</span> }
+          <div class="company-card__icon" aria-hidden="true"><i class="bi bi-building"></i></div>
+          <label for="companyCode"><strong>{{ '::Login.CompanyCode' | abpAsyncLocalization | async }}</strong><small>{{ '::Login.CompanyCodeHint' | abpAsyncLocalization | async }}</small></label>
+          <input id="companyCode" type="text" formControlName="companyCode" autocomplete="organization" [placeholder]="'::Login.CompanyCodePlaceholder' | abpAsyncLocalization | async">
+          @if (form.controls.companyCode.value) { <i class="bi bi-check-circle-fill company-card__status" [title]="'::Login.CompanyCodeSpecified' | abpAsyncLocalization | async"></i> }
         </div>
 
         <div class="field" [class.invalid]="hasError('username')">
-          <label for="username">{{ 'AbpAccount::UserNameOrEmailAddress' | abpLocalization }}</label>
-          <div class="field__control"><span aria-hidden="true">＠</span><input id="username" type="text" formControlName="username" autocomplete="username" [placeholder]="'::Login.UsernamePlaceholder' | abpLocalization"></div>
-          @if (hasError('username')) { <small>{{ '::Login.Required' | abpLocalization }}</small> }
+          <label for="username">{{ 'AbpAccount::UserNameOrEmailAddress' | abpAsyncLocalization | async }}</label>
+          <div class="field__control"><i class="bi bi-person" aria-hidden="true"></i><input id="username" type="text" formControlName="username" autocomplete="username" [placeholder]="'::Login.UsernamePlaceholder' | abpAsyncLocalization | async"></div>
+          @if (hasError('username')) { <small>{{ '::Login.Required' | abpAsyncLocalization | async }}</small> }
         </div>
 
         <div class="field" [class.invalid]="hasError('password')">
-          <label for="password">{{ 'AbpAccount::Password' | abpLocalization }}</label>
-          <div class="field__control"><span aria-hidden="true">⌁</span><input id="password" [type]="passwordVisible() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" placeholder="••••••••"><button type="button" (click)="passwordVisible.set(!passwordVisible())" [attr.aria-label]="(passwordVisible() ? '::Login.HidePassword' : '::Login.ShowPassword') | abpLocalization">{{ passwordVisible() ? '◉' : '◎' }}</button></div>
-          @if (hasError('password')) { <small>{{ '::Login.InvalidPassword' | abpLocalization }}</small> }
+          <label for="password">{{ 'AbpAccount::Password' | abpAsyncLocalization | async }}</label>
+          <div class="field__control"><i class="bi bi-key" aria-hidden="true"></i><input id="password" [type]="passwordVisible() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" placeholder="••••••••"><button type="button" (click)="passwordVisible.set(!passwordVisible())" [attr.aria-label]="(passwordVisible() ? '::Login.HidePassword' : '::Login.ShowPassword') | abpAsyncLocalization | async"><i class="bi" [class.bi-eye]="!passwordVisible()" [class.bi-eye-slash]="passwordVisible()" aria-hidden="true"></i></button></div>
+          @if (hasError('password')) { <small>{{ '::Login.InvalidPassword' | abpAsyncLocalization | async }}</small> }
         </div>
 
         <div class="form-options">
-          <label class="remember"><input type="checkbox" formControlName="rememberMe"><span></span>{{ 'AbpAccount::RememberMe' | abpLocalization }}</label>
-          <button type="button" class="forgot" (click)="recoverPassword()">{{ 'AbpAccount::ForgotPassword' | abpLocalization }}</button>
+          <label class="remember"><input type="checkbox" formControlName="rememberMe"><span></span>{{ 'AbpAccount::RememberMe' | abpAsyncLocalization | async }}</label>
+          <button type="button" class="forgot" (click)="recoverPassword()">{{ 'AbpAccount::ForgotPassword' | abpAsyncLocalization | async }}</button>
         </div>
 
         <button class="submit-button" type="submit" [disabled]="submitting()">
-          @if (submitting()) { <span class="spinner" aria-hidden="true"></span>{{ '::Login.Loading' | abpLocalization }} } @else { {{ 'AbpAccount::Login' | abpLocalization }}<span aria-hidden="true">→</span> }
+          @if (submitting()) { <span class="spinner" aria-hidden="true"></span>{{ '::Login.Loading' | abpAsyncLocalization | async }} } @else { {{ 'AbpAccount::Login' | abpAsyncLocalization | async }}<i class="bi bi-arrow-right" aria-hidden="true"></i> }
         </button>
       </form>
-      <footer class="secure-note"><span>♢</span>{{ '::Login.SecureAccess' | abpLocalization }}</footer>
+      <footer class="secure-note"><i class="bi bi-shield-check" aria-hidden="true"></i>{{ '::Login.SecureAccess' | abpAsyncLocalization | async }}</footer>
     </div>
   </section>
 </main>
