@@ -1,0 +1,12 @@
+{
+  "name": "Owney Beauty",
+  "short_name": "Owney",
+  "lang": "es-DO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "assets/images/logo/icon-lite.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

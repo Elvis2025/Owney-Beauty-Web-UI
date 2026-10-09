@@ -25,6 +25,7 @@
               "base": "dist/OwneyBeauty"
             },
             "index": "src/index.html",
+            "serviceWorker": "ngsw-config.json",
             "polyfills": [
               "src/polyfills.ts"
             ],
@@ -33,6 +34,7 @@
             "allowedCommonJsDependencies": ["chart.js", "js-sha256"],
             "assets": [
               "src/favicon.ico",
+              "src/manifest.webmanifest",
               "src/assets",
               {
                 "glob": "web.config",
