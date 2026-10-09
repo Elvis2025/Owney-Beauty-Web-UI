@@ -1,0 +1,6 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { PermissionService } from '@abp/ng.core';
+
+@Component({selector:'app-admin-nav',imports:[RouterLink,RouterLinkActive],template:`<nav class="mb-8 flex gap-2 overflow-x-auto pb-2" aria-label="Administración">@for(item of items;track item.path){@if(permission.getGrantedPolicy(item.permission)){<a [routerLink]="item.path" routerLinkActive="bg-primary text-primary-foreground" class="grid min-h-11 shrink-0 place-items-center rounded-lg bg-muted px-4 text-sm font-semibold">{{item.label}}</a>}}</nav>`,changeDetection:ChangeDetectionStrategy.OnPush})
+export class AdminNavComponent{readonly permission=inject(PermissionService);readonly items=[{label:'Geografía',path:'/admin/geografia',permission:'Platform.Geography.Manage'},{label:'Monedas',path:'/admin/monedas',permission:'Platform.Currencies.Manage'},{label:'Impuestos',path:'/admin/impuestos',permission:'Platform.TaxRates.Manage'},{label:'Documentos legales',path:'/admin/legal',permission:'Accounts.LegalDocuments.Manage'},{label:'Auditoría',path:'/admin/auditoria',permission:'Platform.BusinessAudit.View'}]}

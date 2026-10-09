@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '@abp/ng.core';
+import { AuthService, PermissionService } from '@abp/ng.core';
 import { AccountStore } from '../auth/account.store';
 import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../../shared/ui/ui.components';
 
@@ -18,6 +18,7 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
       <div class="flex items-center gap-1">
         <button type="button" class="grid size-11 place-items-center rounded-lg hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring" aria-label="Cambiar apariencia" (click)="themeOpen.set(!themeOpen())">◐</button>
         @if (auth.isAuthenticated) {
+          @if (hasAdminAccess()) { <a routerLink="/admin/geografia" class="hidden min-h-11 place-items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent sm:grid">Administrar</a> }
           <a routerLink="/cuenta" class="grid min-h-11 place-items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent">Mi cuenta</a>
           <button type="button" class="grid size-11 place-items-center rounded-lg hover:bg-accent" aria-label="Cerrar sesión" (click)="logout()">↪</button>
         } @else {
@@ -50,6 +51,7 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
 export class AppShellComponent {
   readonly auth = inject(AuthService);
   readonly store = inject(AccountStore);
+  private readonly permission = inject(PermissionService);
   readonly themeOpen = signal(false);
   readonly navigation = [
     { label: 'Inicio', path: '/inicio' },
@@ -60,4 +62,5 @@ export class AppShellComponent {
   constructor(){if(this.auth.isAuthenticated)this.store.load().subscribe();}
   acceptPending(){this.store.acceptPending().subscribe();}
   logout(){this.auth.logout().subscribe();}
+  hasAdminAccess(){return ['Platform.Geography.Manage','Platform.Currencies.Manage','Platform.TaxRates.Manage','Accounts.LegalDocuments.Manage','Platform.BusinessAudit.View'].some(policy=>this.permission.getGrantedPolicy(policy));}
 }

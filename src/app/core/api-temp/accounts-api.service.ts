@@ -14,6 +14,10 @@ export interface RegisterDto {
 }
 export interface RegistrationResultDto { userId: string; userName: string; activeMode: AccountMode; requiresEmailVerification: boolean; requiresPhoneVerification: boolean }
 export interface PublicLegalDocumentDto { id: string; type: LegalDocumentType; language: string; version: string; title: string; content?: string; externalUrl?: string; requiresAcceptance: boolean; publishedTime?: string }
+export interface LegalDocumentDto extends PublicLegalDocumentDto { isCurrent: boolean; creationTime: string; creatorId?: string; lastModificationTime?: string }
+export interface CreateLegalDocumentDto { type:LegalDocumentType;language:string;version:string;title:string;content?:string;externalUrl?:string;requiresAcceptance:boolean }
+export interface UpdateLegalDocumentDto { title:string;content?:string;externalUrl?:string;requiresAcceptance:boolean }
+export interface PagedResultDto<T> { items:T[];totalCount:number }
 export interface VerificationCodeSentDto { channel: VerificationChannel; maskedTarget: string; expiresAt: string }
 export interface MyAccountDto { id: string; userName: string; name?: string; surname?: string; email?: string; emailConfirmed: boolean; phoneNumber?: string; phoneNumberConfirmed: boolean; roles: string[]; availableModes: AccountMode[]; activeMode: AccountMode; onboardingStep: OnboardingStep; pendingLegalDocuments: PublicLegalDocumentDto[] }
 export interface ConsentStatusDto { type: ConsentType; granted: boolean; updatedAt?: string }
@@ -45,4 +49,8 @@ export class AccountsApiService {
   updateConsent(type: ConsentType, granted: boolean) { return this.rest.request<{type:ConsentType;granted:boolean}, ConsentStatusDto>({ method: 'PUT', url: '/api/accounts/my-account/consent', body: { type, granted } }, this.config); }
   getProfile() { return this.rest.request<void, ProfileDto>({ method: 'GET', url: '/api/account/my-profile' }, { apiName: 'AbpAccountPublic' }); }
   changePassword(currentPassword: string, newPassword: string) { return this.rest.request<{currentPassword:string;newPassword:string}, void>({ method: 'POST', url: '/api/account/my-profile/change-password', body: { currentPassword, newPassword } }, { apiName: 'AbpAccountPublic' }); }
+  getLegalDocuments(params:{type?:LegalDocumentType;language?:string;isCurrent?:boolean;sorting?:string;skipCount?:number;maxResultCount?:number}={}) { return this.rest.request<void, PagedResultDto<LegalDocumentDto>>({ method:'GET',url:'/api/accounts/legal-document',params },this.config); }
+  createLegalDocument(input:CreateLegalDocumentDto){return this.rest.request<CreateLegalDocumentDto,LegalDocumentDto>({method:'POST',url:'/api/accounts/legal-document',body:input},this.config)}
+  updateLegalDocument(id:string,input:UpdateLegalDocumentDto){return this.rest.request<UpdateLegalDocumentDto,LegalDocumentDto>({method:'PUT',url:`/api/accounts/legal-document/${id}`,body:input},this.config)}
+  publishLegalDocument(id:string){return this.rest.request<void,LegalDocumentDto>({method:'POST',url:`/api/accounts/legal-document/${id}/publish`},this.config)}
 }
