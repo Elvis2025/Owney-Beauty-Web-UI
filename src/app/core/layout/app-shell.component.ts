@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '@abp/ng.core';
+import { AccountStore } from '../auth/account.store';
 import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../../shared/ui/ui.components';
 
 @Component({
@@ -18,6 +19,7 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
         <button type="button" class="grid size-11 place-items-center rounded-lg hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring" aria-label="Cambiar apariencia" (click)="themeOpen.set(!themeOpen())">◐</button>
         @if (auth.isAuthenticated) {
           <a routerLink="/cuenta" class="grid min-h-11 place-items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent">Mi cuenta</a>
+          <button type="button" class="grid size-11 place-items-center rounded-lg hover:bg-accent" aria-label="Cerrar sesión" (click)="logout()">↪</button>
         } @else {
           <a routerLink="/auth/login" class="grid min-h-11 place-items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent">Entrar</a>
         }
@@ -32,12 +34,22 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
       </div>
     }
     <main id="main-content" class="min-h-[calc(100dvh-4rem)] pb-20 md:pb-0"><router-outlet /></main>
+    @if (store.pendingLegal().length) {
+      <div class="fixed inset-0 z-[60] grid place-items-center bg-foreground/50 p-4">
+        <section class="max-h-[90vh] w-full max-w-xl overflow-auto rounded-xl border border-border bg-card p-6 text-card-foreground shadow-xl" role="alertdialog" aria-modal="true" aria-labelledby="pending-legal-title">
+          <p class="text-xs font-semibold uppercase tracking-[.25em] text-muted-foreground">Actualización legal</p><h2 id="pending-legal-title" class="mt-2 text-2xl font-bold">Revisa los documentos pendientes</h2><p class="mt-2 text-muted-foreground">Para seguir usando Owney Beauty debes aceptar las versiones vigentes.</p>
+          <div class="my-5 grid gap-3">@for(doc of store.pendingLegal();track doc.id){<details class="rounded-lg border border-border p-4"><summary class="min-h-11 cursor-pointer font-semibold">{{doc.title}} · v{{doc.version}}</summary>@if(doc.content){<div class="whitespace-pre-wrap pt-3 text-sm leading-6">{{doc.content}}</div>}@if(doc.externalUrl){<a class="mt-3 inline-flex min-h-11 items-center underline" [href]="doc.externalUrl" target="_blank" rel="noopener">Abrir documento</a>}</details>}</div>
+          <button type="button" class="min-h-11 w-full rounded-lg bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50" [disabled]="store.loading()" (click)="acceptPending()">Aceptar y continuar</button>
+        </section>
+      </div>
+    }
     <ob-bottom-nav />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent {
   readonly auth = inject(AuthService);
+  readonly store = inject(AccountStore);
   readonly themeOpen = signal(false);
   readonly navigation = [
     { label: 'Inicio', path: '/inicio' },
@@ -45,4 +57,7 @@ export class AppShellComponent {
     { label: 'Social', path: '/social' },
     { label: 'Citas', path: '/citas' },
   ];
+  constructor(){if(this.auth.isAuthenticated)this.store.load().subscribe();}
+  acceptPending(){this.store.acceptPending().subscribe();}
+  logout(){this.auth.logout().subscribe();}
 }

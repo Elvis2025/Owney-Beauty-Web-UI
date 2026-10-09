@@ -20,6 +20,7 @@ export interface ConsentStatusDto { type: ConsentType; granted: boolean; updated
 export interface ListResultDto<T> { items: T[] }
 export interface ResetPasswordDto { userId?: string; resetToken: string; password: string }
 export interface SendPasswordResetCodeDto { email: string; appName: string; returnUrl?: string; returnUrlHash?: string }
+export interface ProfileDto { userName?: string; email?: string; name?: string; surname?: string; phoneNumber?: string; isExternal: boolean; hasPassword: boolean; concurrencyStamp?: string }
 
 @Injectable({ providedIn: 'root' })
 export class AccountsApiService {
@@ -42,4 +43,6 @@ export class AccountsApiService {
   acceptLegalDocuments(legalDocumentIds: string[]) { return this.rest.request<{legalDocumentIds:string[]}, MyAccountDto>({ method: 'POST', url: '/api/accounts/my-account/accept-legal-documents', body: { legalDocumentIds } }, this.config); }
   getConsents() { return this.rest.request<void, ListResultDto<ConsentStatusDto>>({ method: 'GET', url: '/api/accounts/my-account/consents' }, this.config); }
   updateConsent(type: ConsentType, granted: boolean) { return this.rest.request<{type:ConsentType;granted:boolean}, ConsentStatusDto>({ method: 'PUT', url: '/api/accounts/my-account/consent', body: { type, granted } }, this.config); }
+  getProfile() { return this.rest.request<void, ProfileDto>({ method: 'GET', url: '/api/account/my-profile' }, { apiName: 'AbpAccountPublic' }); }
+  changePassword(currentPassword: string, newPassword: string) { return this.rest.request<{currentPassword:string;newPassword:string}, void>({ method: 'POST', url: '/api/account/my-profile/change-password', body: { currentPassword, newPassword } }, { apiName: 'AbpAccountPublic' }); }
 }
