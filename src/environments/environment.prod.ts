@@ -19,6 +19,7 @@ export const environment = {
     name: 'OwneyBeauty',
   },
   oAuthConfig,
+  authCodePkce: false,
   apis: {
     default: {
       url: 'https://localhost:44389',

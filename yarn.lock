@@ -102,15 +102,6 @@
     "@abp/ng.theme.shared" "~10.6.0"
     tslib "^2.0.0"
 
-"@abp/ng.tenant-management@~10.6.0":
-  version "10.6.0"
-  resolved "https://registry.npmjs.org/@abp/ng.tenant-management/-/ng.tenant-management-10.6.0.tgz"
-  integrity sha512-QqLuzjqBxwrGbVYg1UuqmX6xvOK9Om/8/tHn2sLsqam4rEoFfcwYqX6eSQ8N62c0g4m2MPoLX3hlxcIrliJwxw==
-  dependencies:
-    "@abp/ng.feature-management" "~10.6.0"
-    "@abp/ng.theme.shared" "~10.6.0"
-    tslib "^2.0.0"
-
 "@abp/ng.theme.lepton-x@~5.6.0":
   version "5.6.0"
   resolved "https://registry.npmjs.org/@abp/ng.theme.lepton-x/-/ng.theme.lepton-x-5.6.0.tgz"
