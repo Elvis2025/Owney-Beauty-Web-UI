@@ -1,21 +1,23 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService, PermissionService } from '@abp/ng.core';
 import { AccountStore } from '../auth/account.store';
-import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../../shared/ui/ui.components';
+import { BottomNavComponent, HeaderComponent, SidebarComponent, ThemePickerComponent } from '../../shared/ui/ui.components';
+import { AccountMode } from '../api-temp/accounts-api.service';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent, BottomNavComponent, ThemePickerComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent, BottomNavComponent, SidebarComponent, ThemePickerComponent],
   template: `
     <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-3 focus:text-primary-foreground" href="#main-content">Saltar al contenido</a>
     <ob-header>
       <nav class="hidden items-center gap-1 md:flex" aria-label="Navegación principal">
-        @for (item of navigation; track item.path) {
+        @for (item of activeNavigation(); track item.path) {
           <a [routerLink]="item.path" routerLinkActive="bg-accent" class="grid min-h-11 place-items-center rounded-lg px-3 text-sm font-medium hover:bg-accent">{{ item.label }}</a>
         }
       </nav>
       <div class="flex items-center gap-1">
+        @if (auth.isAuthenticated) { <a routerLink="/notificaciones" class="relative grid size-11 place-items-center rounded-lg hover:bg-accent" aria-label="Notificaciones">♢<span class="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive"></span></a> }
         <button type="button" class="grid size-11 place-items-center rounded-lg hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring" aria-label="Cambiar apariencia" (click)="themeOpen.set(!themeOpen())">◐</button>
         @if (auth.isAuthenticated) {
           @if (hasAdminAccess()) { <a routerLink="/admin/geografia" class="hidden min-h-11 place-items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent sm:grid">Administrar</a> }
@@ -34,7 +36,12 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
         </section>
       </div>
     }
-    <main id="main-content" class="min-h-[calc(100dvh-4rem)] pb-20 md:pb-0"><router-outlet /></main>
+    <div class="flex">
+      @if (isAdminRoute() || store.activeMode() === modes.Professional) {
+        <ob-sidebar><nav class="grid gap-1">@for(item of sidebarNavigation();track item.path){@if(!item.permission || permission.getGrantedPolicy(item.permission)){<a [routerLink]="item.path" routerLinkActive="bg-accent" class="grid min-h-11 items-center rounded-lg px-3 text-sm font-semibold hover:bg-accent">{{item.label}}</a>}}</nav></ob-sidebar>
+      }
+      <main id="main-content" class="min-h-[calc(100dvh-4rem)] min-w-0 flex-1 pb-20 md:pb-0"><router-outlet /></main>
+    </div>
     @if (store.pendingLegal().length) {
       <div class="fixed inset-0 z-[60] grid place-items-center bg-foreground/50 p-4">
         <section class="max-h-[90vh] w-full max-w-xl overflow-auto rounded-xl border border-border bg-card p-6 text-card-foreground shadow-xl" role="alertdialog" aria-modal="true" aria-labelledby="pending-legal-title">
@@ -51,16 +58,24 @@ import { BottomNavComponent, HeaderComponent, ThemePickerComponent } from '../..
 export class AppShellComponent {
   readonly auth = inject(AuthService);
   readonly store = inject(AccountStore);
-  private readonly permission = inject(PermissionService);
+  readonly permission = inject(PermissionService);
+  private readonly router = inject(Router);
+  readonly modes=AccountMode;
   readonly themeOpen = signal(false);
-  readonly navigation = [
+  readonly clientNavigation = [
     { label: 'Inicio', path: '/inicio' },
     { label: 'Buscar', path: '/buscar' },
     { label: 'Social', path: '/social' },
     { label: 'Citas', path: '/citas' },
+    { label: 'Mi panel', path: '/cuenta' },
   ];
+  readonly proNavigation=[{label:'Mi panel',path:'/pro/panel',permission:undefined},{label:'Agenda',path:'/pro/agenda',permission:undefined},{label:'Servicios',path:'/pro/servicios',permission:undefined},{label:'Promociones',path:'/pro/promociones',permission:undefined}];
+  readonly adminNavigation=[{label:'Panel',path:'/admin',permission:'Platform.Geography.Manage'},{label:'Geografía',path:'/admin/geografia',permission:'Platform.Geography.Manage'},{label:'Monedas',path:'/admin/monedas',permission:'Platform.Currencies.Manage'},{label:'Impuestos',path:'/admin/impuestos',permission:'Platform.TaxRates.Manage'},{label:'Legal',path:'/admin/legal',permission:'Accounts.LegalDocuments.Manage'},{label:'Auditoría',path:'/admin/auditoria',permission:'Platform.BusinessAudit.View'}];
   constructor(){if(this.auth.isAuthenticated)this.store.load().subscribe();}
   acceptPending(){this.store.acceptPending().subscribe();}
   logout(){this.auth.logout().subscribe();}
   hasAdminAccess(){return ['Platform.Geography.Manage','Platform.Currencies.Manage','Platform.TaxRates.Manage','Accounts.LegalDocuments.Manage','Platform.BusinessAudit.View'].some(policy=>this.permission.getGrantedPolicy(policy));}
+  activeNavigation(){return this.store.activeMode()===AccountMode.Professional?this.proNavigation:this.clientNavigation;}
+  isAdminRoute(){return this.router.url.startsWith('/admin');}
+  sidebarNavigation(){return this.isAdminRoute()?this.adminNavigation:this.proNavigation;}
 }

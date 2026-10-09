@@ -1,0 +1,20 @@
+import { InjectionToken, Injectable, inject } from '@angular/core';
+import { Observable, of } from 'rxjs';
+
+export interface BeautyService{id:string;name:string;description:string;durationMinutes:number;price:number;modality:'Salón'|'A domicilio'|'Ambos'}
+export interface Professional{id:string;name:string;specialty:string;zone:string;rating:number;reviews:number;image:string;cover:string;verified:boolean;priceFrom:number;bio:string;categories:string[];modalities:('Salón'|'A domicilio')[];portfolio:string[];services:BeautyService[]}
+export interface Promotion{id:string;title:string;detail:string;professional:string}
+export interface ProfilesApi{list():Observable<Professional[]>;get(id:string):Observable<Professional|undefined>;categories():Observable<string[]>;promotions():Observable<Promotion[]>}
+
+const images=['https://cdn.b12.io/client_media/kvKvc0V1/5950a95d-9cc7-11f1-be61-0242ac110002-X0DlyrM7oyHJngp3bvtn8_S8eqbuoS.jpg','https://cdn.b12.io/client_media/kvKvc0V1/58623a89-9cc7-11f1-8497-0242ac110002-tzCiRBfUlRECg_vMzc_qN_jMHwIioS.jpg','https://cdn.b12.io/client_media/kvKvc0V1/594fc3f2-9cc7-11f1-8b92-0242ac110002-EYS7olFp-X6MApbWwCsMk_74E7ogac.jpg','https://cdn.b12.io/client_media/kvKvc0V1/59b10f34-9cc7-11f1-9d39-0242ac110002--MwwCjKGm2tTf_prot-4P_lIPL9QFd.jpg'];
+@Injectable({providedIn:'root'})
+export class MockProfilesApi implements ProfilesApi{
+  private readonly professionals:Professional[]=[
+    {id:'maria',name:'María Rodríguez',specialty:'Nail Artist',zone:'Naco',rating:4.9,reviews:127,image:images[0],cover:images[0],verified:true,priceFrom:800,bio:'Especialista en uñas y diseños personalizados con acabados duraderos.',categories:['Manicure','Pedicure'],modalities:['Salón','A domicilio'],portfolio:[images[0],images[2],images[3]],services:[{id:'gel',name:'Manicure en gel',description:'Preparación, color y acabado brillante.',durationMinutes:60,price:1200,modality:'Ambos'},{id:'pedi',name:'Pedicure spa',description:'Cuidado completo y esmalte.',durationMinutes:75,price:1500,modality:'Salón'}]},
+    {id:'ana',name:'Ana Martínez',specialty:'Hair Stylist',zone:'Piantini',rating:4.8,reviews:98,image:images[1],cover:images[1],verified:true,priceFrom:1500,bio:'Colorista enfocada en resultados naturales y cuidado capilar.',categories:['Cabello'],modalities:['Salón'],portfolio:[images[1],images[0]],services:[{id:'balayage',name:'Balayage + corte',description:'Diagnóstico, color y estilizado.',durationMinutes:180,price:4500,modality:'Salón'}]},
+    {id:'carmen',name:'Carmen López',specialty:'Especialista facial',zone:'Zona Colonial',rating:5,reviews:74,image:images[2],cover:images[2],verified:true,priceFrom:2000,bio:'Bienestar facial y tratamientos personalizados para cada piel.',categories:['Facial','Masajes'],modalities:['Salón','A domicilio'],portfolio:[images[2],images[3]],services:[{id:'facial',name:'Facial luminosidad',description:'Limpieza e hidratación profunda.',durationMinutes:90,price:2800,modality:'Ambos'}]},
+    {id:'laura',name:'Laura Díaz',specialty:'Makeup Artist',zone:'Santiago',rating:4.9,reviews:156,image:images[3],cover:images[3],verified:true,priceFrom:2500,bio:'Maquilladora profesional con experiencia en bodas y eventos.',categories:['Maquillaje','Cejas & Pestañas'],modalities:['A domicilio'],portfolio:[images[3],images[1],images[0]],services:[{id:'social',name:'Maquillaje social',description:'Maquillaje de larga duración adaptado a tu evento.',durationMinutes:90,price:3200,modality:'A domicilio'}]},
+  ];
+  list(){return of(this.professionals)}get(id:string){return of(this.professionals.find(item=>item.id===id))}categories(){return of(['Cabello','Manicure','Pedicure','Maquillaje','Facial','Masajes','Cejas & Pestañas','Depilación'])}promotions(){return of([{id:'p1',title:'Balayage + Corte 15% Off',detail:'Iluminación natural con estilizado incluido.',professional:'Ana Martínez'},{id:'p2',title:'RD$500 Off Masaje',detail:'Desconecta y renueva tu energía.',professional:'Carmen López'}])}
+}
+export const PROFILES_API=new InjectionToken<ProfilesApi>('ProfilesApi',{providedIn:'root',factory:()=>inject(MockProfilesApi)});

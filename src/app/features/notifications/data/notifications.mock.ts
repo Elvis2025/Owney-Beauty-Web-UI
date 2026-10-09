@@ -1,0 +1,6 @@
+import { InjectionToken, Injectable, inject } from '@angular/core';
+import { Observable, of } from 'rxjs';
+export interface NotificationItem{id:string;title:string;message:string;time:string;read:boolean;type:'booking'|'refund'|'review'|'verification'}
+export interface NotificationsApi{list():Observable<NotificationItem[]>;markAllRead():Observable<void>}
+@Injectable({providedIn:'root'})export class MockNotificationsApi implements NotificationsApi{private readonly items:NotificationItem[]=[{id:'1',title:'Reservación confirmada',message:'Tu cita con María está confirmada.',time:'Hace 5 min',read:false,type:'booking'},{id:'2',title:'Servicio completado',message:'¡Deja tu reseña!',time:'Ayer',read:false,type:'review'},{id:'3',title:'Reembolso aprobado',message:'Tu devolución fue procesada.',time:'Hace 2 días',read:true,type:'refund'},{id:'4',title:'¡Verificación aprobada!',message:'Tu perfil ahora luce la insignia verificada.',time:'Hace 1 semana',read:true,type:'verification'}];list(){return of(this.items)}markAllRead(){this.items.forEach(item=>item.read=true);return of(undefined)}}
+export const NOTIFICATIONS_API=new InjectionToken<NotificationsApi>('NotificationsApi',{providedIn:'root',factory:()=>inject(MockNotificationsApi)});

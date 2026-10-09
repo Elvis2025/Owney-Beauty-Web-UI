@@ -4,6 +4,8 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ToasterService } from '@abp/ng.theme.shared';
 import { ThemeMode, ThemeName, ThemeService } from '../../core/theme/theme.service';
+import { AccountStore } from '../../core/auth/account.store';
+import { AccountMode } from '../../core/api-temp/accounts-api.service';
 
 @Component({
   selector: 'ob-button',
@@ -95,11 +97,11 @@ export class PriceComponent { readonly value=input(0); readonly currency=input('
 })
 export class ThemePickerComponent { readonly themeService=inject(ThemeService); readonly modes:readonly {value:ThemeMode;label:string}[]=[{value:'light',label:'Claro'},{value:'dark',label:'Oscuro'},{value:'system',label:'Sistema'}]; selectTheme(value:ThemeName){this.themeService.setTheme(value);} selectMode(value:ThemeMode){this.themeService.setMode(value);} }
 
-@Component({ selector:'ob-bottom-nav', imports:[RouterLink,RouterLinkActive], template:`<nav class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Navegación principal"><a routerLink="/inicio" routerLinkActive="text-primary" class="grid min-h-16 place-items-center text-xs">⌂<span>Inicio</span></a><a routerLink="/buscar" routerLinkActive="text-primary" class="grid min-h-16 place-items-center text-xs">⌕<span>Buscar</span></a><a routerLink="/social" routerLinkActive="text-primary" class="grid min-h-16 place-items-center text-xs">＋<span>Comunidad</span></a><a routerLink="/citas" routerLinkActive="text-primary" class="grid min-h-16 place-items-center text-xs">◷<span>Citas</span></a><a routerLink="/cuenta" routerLinkActive="text-primary" class="grid min-h-16 place-items-center text-xs">○<span>Perfil</span></a></nav>`, changeDetection:ChangeDetectionStrategy.OnPush })
-export class BottomNavComponent {}
+@Component({ selector:'ob-bottom-nav', imports:[RouterLink,RouterLinkActive], template:`<nav class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Navegación principal">@if(store.activeMode()===modes.Professional){<a routerLink="/pro/panel" routerLinkActive="text-primary" class="nav">⌂<span>Panel</span></a><a routerLink="/pro/agenda" routerLinkActive="text-primary" class="nav">◷<span>Agenda</span></a><a routerLink="/social" routerLinkActive="text-primary" class="nav">＋<span>Crear</span></a><a routerLink="/pro/servicios" routerLinkActive="text-primary" class="nav">◇<span>Servicios</span></a><a routerLink="/pro/perfil" routerLinkActive="text-primary" class="nav">○<span>Perfil</span></a>}@else{<a routerLink="/inicio" routerLinkActive="text-primary" class="nav">⌂<span>Inicio</span></a><a routerLink="/buscar" routerLinkActive="text-primary" class="nav">⌕<span>Buscar</span></a><a routerLink="/social" routerLinkActive="text-primary" class="nav">＋<span>Comunidad</span></a><a routerLink="/citas" routerLinkActive="text-primary" class="nav">◷<span>Citas</span></a><a routerLink="/cuenta" routerLinkActive="text-primary" class="nav">○<span>Perfil</span></a>}</nav>`, styles:[`.nav{display:grid;min-height:4rem;place-items:center;font-size:.75rem}.nav span{display:block}`], changeDetection:ChangeDetectionStrategy.OnPush })
+export class BottomNavComponent {readonly store=inject(AccountStore);readonly modes=AccountMode;}
 
 @Component({ selector:'ob-sidebar', template:`<aside class="hidden min-h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-border bg-card p-4 lg:block"><ng-content /></aside>`, changeDetection:ChangeDetectionStrategy.OnPush })
 export class SidebarComponent {}
 
-@Component({ selector:'ob-header', imports:[RouterLink], template:`<header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur"><div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><a routerLink="/inicio" class="font-display text-xl tracking-[.18em]">OWNEY <small class="text-[.55em] text-metal">BEAUTY</small></a><ng-content /></div></header>`, changeDetection:ChangeDetectionStrategy.OnPush })
-export class HeaderComponent {}
+@Component({ selector:'ob-header', imports:[RouterLink], template:`<header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur"><div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><a [routerLink]="store.activeMode()===modes.Professional?'/pro/panel':'/inicio'" class="font-display text-xl tracking-[.18em]">OWNEY <small class="text-[.55em] text-metal">BEAUTY</small></a><ng-content /></div></header>`, changeDetection:ChangeDetectionStrategy.OnPush })
+export class HeaderComponent {readonly store=inject(AccountStore);readonly modes=AccountMode;}
