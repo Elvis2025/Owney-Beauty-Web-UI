@@ -1,95 +1,47 @@
-# OwneyBeauty - Angular Application
+# Owney Beauty Web UI
 
-This is an Angular application built on the ABP Framework. For more information, visit <a href="https://abp.io/" target="_blank">abp.io</a>.
+Aplicación Angular 22 + ABP Angular 10.6 para la red social y marketplace de belleza Owney Beauty.
 
-## Pre-requirements
+## Desarrollo local
 
-* [Node.js v18 or later](https://nodejs.org/)
-* [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-
-## Getting Started
-
-### Install dependencies
+Requisitos: Node.js 22 y la API en `https://localhost:44389`.
 
 ```bash
-npm install
+npm install --legacy-peer-deps
+npm start
 ```
 
-### Install ABP client-side libraries
+La incompatibilidad de *peer dependencies* ya existía en la plantilla: ABP 10.6 declara Angular 21, mientras este proyecto usa Angular 22. El build y las pruebas verifican la combinación utilizada, pero una futura actualización de ABP debe eliminar esta excepción.
 
-If you haven't already, run the following command from the solution root folder:
+## Verificación
 
 ```bash
-abp install-libs
+npm run check
 ```
 
-### Start the backend
+Este comando ejecuta lint, 21 pruebas Vitest/axe (incluido contraste de los 16 esquemas) y el build de producción. `npm audit --omit=dev` debe permanecer sin vulnerabilidades conocidas.
 
-Before running the Angular application, make sure your backend API is running:
+## Arquitectura
 
-* Start the host application
+- `core/api-temp`: contratos temporales exactos de Accounts y Platform. Sustituirlos por proxies generados cuando la herramienta de ABP esté disponible.
+- `core/auth`, `core/http`, `core/theme`, `core/layout`: sesión, guards, interceptores, temas y shell.
+- `shared/ui`: componentes visuales basados en tokens.
+- `features/auth`, `account`, `admin`, `legal`: flujos conectados a la API real.
+- `features/**/data/*.mock.ts`: contratos e `InjectionToken` para dominios todavía no implementados por la API.
 
-## Development server
+No se usa multi-tenencia. El registro nativo de ABP está desactivado; la UI registra mediante `/api/accounts/registration/register`.
 
-Run `ng serve` or `npm start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Railway / Docker
 
-## ABP CLI Commands
+El `Dockerfile` construye la app con Node 22 y la publica con Nginx. Configura estas variables en Railway:
 
-### Generate Proxy
+- `APP_URL`: URL pública del frontend, sin barra final.
+- `API_URL`: URL pública de la API, sin barra final.
 
-Generate TypeScript proxies for your backend APIs:
+Al iniciar el contenedor, `scripts/40-write-runtime-env.sh` genera `dynamic-env.json`; por eso la misma imagen sirve para cada ambiente. Nginx expone el puerto 80 y aplica fallback a `index.html` para las rutas Angular.
 
-```bash
-abp generate-proxy -t ng
-```
+La API también debe permitir `APP_URL` como origen CORS y como redirect URI del cliente OpenIddict `OwneyBeauty_App`.
 
-This command generates service proxies that allow you to call your backend APIs in a type-safe manner.
+## Proxies ABP pendientes
 
-### Add Module
-
-Add a new ABP module to your Angular application:
-
-```bash
-abp add-module <module-name>
-```
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-For a production build:
-
-```bash
-ng build --configuration production
-```
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice.
-
-## Environment Configuration
-
-### Development Environment
-
-The development environment configuration is located in `src/environments/environment.ts`. Update the `apiUrl` to point to your backend API.
-
-### Production Environment
-
-For production, the application uses dynamic environment configuration through the `dynamic-env.json` file. This allows you to configure the environment variables at deployment time without rebuilding the application.
-
-The web server's `getEnvConfig` endpoint is configured by default to serve the environment configuration.
-
-See [Environment](https://abp.io/docs/latest/framework/ui/angular/environment) for more information.
-
-## Additional Resources
-
-* [ABP Angular UI Documentation](https://abp.io/docs/latest/framework/ui/angular/overview)
-* [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli)
+Las reglas del repositorio prohíben ejecutar el generador mediante una terminal genérica. Cuando esté disponible la herramienta especializada de ABP, genera los módulos `accounts` y `platform`, reemplaza `core/api-temp` y conserva las interfaces consumidas por las vistas.

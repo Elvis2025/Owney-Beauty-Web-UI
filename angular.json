@@ -168,6 +168,13 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "test": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "polyfills": ["zone.js", "zone.js/testing", "@angular/localize/init"]
             }
           },
           "defaultConfiguration": "production"
@@ -194,7 +201,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "buildTarget": "OwneyBeauty:build",
+            "buildTarget": "OwneyBeauty:build:test",
             "runner": "vitest"
           }
         },
