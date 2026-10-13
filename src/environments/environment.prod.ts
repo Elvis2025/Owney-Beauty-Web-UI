@@ -16,7 +16,8 @@ export const environment = {
   production: true,
   application: {
     baseUrl,
-    name: 'OwneyBeauty',
+    name: 'Owney Beauty',
+    logoUrl: 'assets/images/logo/owney-badge-512.png',
   },
   oAuthConfig,
   authCodePkce: false,

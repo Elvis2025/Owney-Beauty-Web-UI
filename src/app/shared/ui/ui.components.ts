@@ -103,5 +103,12 @@ export class BottomNavComponent {readonly store=inject(AccountStore);readonly mo
 @Component({ selector:'ob-sidebar', template:`<aside class="hidden min-h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-border bg-card p-4 lg:block"><ng-content /></aside>`, changeDetection:ChangeDetectionStrategy.OnPush })
 export class SidebarComponent {}
 
-@Component({ selector:'ob-header', imports:[RouterLink], template:`<header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur"><div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><a [routerLink]="store.activeMode()===modes.Professional?'/pro/panel':'/inicio'" class="font-display text-xl tracking-[.18em]">OWNEY <small class="text-[.55em] text-metal">BEAUTY</small></a><ng-content /></div></header>`, changeDetection:ChangeDetectionStrategy.OnPush })
+@Component({
+  selector: 'ob-logo-mark',
+  template: `<img src="assets/images/logo/owney-badge-512.png" alt="" aria-hidden="true" class="block shrink-0 rounded-[22%]" [style.width.px]="size()" [style.height.px]="size()" />`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class LogoMarkComponent { readonly size = input(36); }
+
+@Component({ selector:'ob-header', imports:[LogoMarkComponent,RouterLink], template:`<header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur"><div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><a [routerLink]="store.activeMode()===modes.Professional?'/pro/panel':'/inicio'" class="inline-flex items-center gap-2.5 font-display text-xl tracking-[.18em]"><ob-logo-mark />OWNEY <small class="text-[.55em] text-metal">BEAUTY</small></a><ng-content /></div></header>`, changeDetection:ChangeDetectionStrategy.OnPush })
 export class HeaderComponent {readonly store=inject(AccountStore);readonly modes=AccountMode;}
