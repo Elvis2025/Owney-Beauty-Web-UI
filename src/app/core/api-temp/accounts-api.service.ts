@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { RestService } from '@abp/ng.core';
 
-// TODO: reemplazar por proxy generado
+// TODO: reemplazar por proxy generado (generate_angular_proxies).
+// Enums reconciliados a mano con Domain.Shared/Modules/Accounts/Enums (2026-10-13); mantener valores y nombres idénticos al backend.
 export enum AccountMode { Client = 1, Professional = 2, Business = 3 }
-export enum OnboardingStep { None = 0, AccountCreated = 1, ContactVerified = 2, ProfileStarted = 3 }
+export enum OnboardingStep { RoleSelection = 0, Profile = 1, Verification = 2, Completed = 3 }
 export enum VerificationChannel { Email = 1, Phone = 2 }
-export enum LegalDocumentType { TermsAndConditions = 1, PrivacyPolicy = 2, CookiePolicy = 3, ProfessionalAgreement = 4, BusinessAgreement = 5 }
-export enum ConsentType { TermsAndConditions = 1, PrivacyPolicy = 2, Marketing = 3 }
+export enum LegalDocumentType { TermsOfService = 1, PrivacyPolicy = 2, CancellationPolicy = 3, ProfessionalAgreement = 4, ContentPolicy = 5 }
+export enum ConsentType { DataProcessing = 1, Marketing = 2, Location = 3 }
 
 export interface RegisterDto {
   email?: string; phoneNumber?: string; userName?: string; name: string; surname?: string;
